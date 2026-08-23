@@ -1,5 +1,7 @@
 pipeline {
-    agent any
+    agent {
+        label "jdk25"
+    }
 
     options {
         githubProjectProperty(projectUrlStr: "https://github.com/SirBlobman/Freeze")
@@ -12,10 +14,6 @@ pipeline {
 
     triggers {
         githubPush()
-    }
-
-    tools {
-        jdk "JDK 25"
     }
 
     stages {
@@ -41,13 +39,21 @@ pipeline {
 
         always {
             script {
-                discordSend webhookURL: DISCORD_URL, title: "Freeze", link: "${env.BUILD_URL}",
+                def description = """
+                    **Branch:** ${env.GIT_BRANCH}
+                    **Build:** ${env.BUILD_NUMBER}
+                    **Status:** ${currentBuild.currentResult}
+                """
+
+                discordSend(
+                    webhookURL: DISCORD_URL,
+                    title: "Freeze",
+                    link: env.BUILD_URL,
                     result: currentBuild.currentResult,
-                    description: """\
-                        **Branch:** ${env.GIT_BRANCH}
-                        **Build:** ${env.BUILD_NUMBER}
-                        **Status:** ${currentBuild.currentResult}""".stripIndent(),
-                    enableArtifactsList: false, showChangeset: true
+                    description: description.stripIndent(),
+                    enableArtifactsList: false,
+                    showChangeset: true
+                )
             }
         }
     }
