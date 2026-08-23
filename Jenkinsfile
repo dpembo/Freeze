@@ -1,10 +1,10 @@
 pipeline {
     agent {
-        label "jdk25"
+        label 'jdk25'
     }
 
     options {
-        githubProjectProperty(projectUrlStr: "https://github.com/SirBlobman/Freeze")
+        githubProjectProperty(projectUrlStr: 'https://github.com/SirBlobman/Freeze')
     }
 
     environment {
@@ -17,14 +17,14 @@ pipeline {
     }
 
     stages {
-        stage("Gradle: Build") {
+        stage('Gradle: Build') {
             steps {
                 withGradle {
                     script {
-                        if (env.BRANCH_NAME == "main") {
-                            sh("./gradlew --refresh-dependencies --no-daemon clean build publish")
+                        if (env.BRANCH_NAME == 'main') {
+                            sh('./gradlew --refresh-dependencies --no-daemon clean build publish')
                         } else {
-                            sh("./gradlew --refresh-dependencies --no-daemon clean build")
+                            sh('./gradlew --refresh-dependencies --no-daemon clean build')
                         }
                     }
                 }
@@ -47,7 +47,7 @@ pipeline {
 
                 discordSend(
                     webhookURL: DISCORD_URL,
-                    title: "Freeze",
+                    title: 'Freeze',
                     link: env.BUILD_URL,
                     result: currentBuild.currentResult,
                     description: description.stripIndent(),
