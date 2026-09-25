@@ -138,7 +138,7 @@ public final class FreezePlugin extends JavaPlugin {
     public void closeFakeMenu(@NotNull Player player) {
         InventoryView view = player.getOpenInventory();
         Inventory topInventory = view.getTopInventory();
-        InventoryHolder holder = topInventory.getHolder();
+        InventoryHolder holder = topInventory.getHolder(false);
         if (holder instanceof FakeMenu) {
             player.closeInventory();
         }

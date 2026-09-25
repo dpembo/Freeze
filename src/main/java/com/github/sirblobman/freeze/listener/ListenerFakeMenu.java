@@ -11,7 +11,10 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 
+import com.github.sirblobman.api.folia.details.EntityTaskDetails;
+import com.github.sirblobman.api.folia.scheduler.TaskScheduler;
 import com.github.sirblobman.freeze.configuration.FreezeConfiguration;
 import com.github.sirblobman.freeze.FreezeManager;
 import com.github.sirblobman.freeze.FreezePlugin;
@@ -39,7 +42,7 @@ public final class ListenerFakeMenu extends FreezeListener {
         }
 
         Player player = event.getPlayer();
-        openFreezeMenu(player);
+        scheduleOpenFreezeMenu(player);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -96,6 +99,13 @@ public final class ListenerFakeMenu extends FreezeListener {
             return;
         }
 
+        // Never mutate the player's open view synchronously inside InventoryCloseEvent.
+        // Paper documents this as unsafe and it can crash event dispatch on 26.x.
+        if (event.getReason() == InventoryCloseEvent.Reason.PLUGIN
+                || event.getReason() == InventoryCloseEvent.Reason.DISCONNECT) {
+            return;
+        }
+
         HumanEntity closer = event.getPlayer();
         if (!(closer instanceof Player player)) {
             return;
@@ -106,7 +116,41 @@ public final class ListenerFakeMenu extends FreezeListener {
             return;
         }
 
-        openFreezeMenu(player);
+        Inventory inventory = event.getInventory();
+        InventoryHolder holder = inventory.getHolder(false);
+        if (holder instanceof FakeMenu) {
+            // Player closed the freeze GUI intentionally — reopen next tick.
+            scheduleOpenFreezeMenu(player);
+            return;
+        }
+
+        // Closed some other inventory while frozen — still force the freeze GUI.
+        scheduleOpenFreezeMenu(player);
+    }
+
+    private void scheduleOpenFreezeMenu(@NotNull Player player) {
+        FreezePlugin plugin = getPlugin();
+        TaskScheduler scheduler = plugin.getFoliaHelper().getScheduler();
+        scheduler.scheduleEntityTask(new EntityTaskDetails<Player>(plugin, player) {
+            {
+                setDelay(1L);
+            }
+
+            @Override
+            public void run() {
+                Player entity = getEntity();
+                if (entity == null || !entity.isOnline()) {
+                    return;
+                }
+
+                FreezeManager freezeManager = getFreezeManager();
+                if (!freezeManager.isFrozen(entity)) {
+                    return;
+                }
+
+                openFreezeMenu(entity);
+            }
+        });
     }
 
     private void openFreezeMenu(@NotNull Player player) {
