@@ -48,7 +48,7 @@ repositories {
 
 dependencies {
     compileOnly("org.jetbrains:annotations:26.1.0") // JetBrains Annotations
-    compileOnly("io.papermc.paper:paper-api:26.1.2.build.+") // PaperMC API
+    compileOnly("io.papermc.paper:paper-api:26.2.build.+") // PaperMC API
     implementation("org.bstats:bstats-bukkit:3.2.1") // bStats Bukkit
     implementation("com.github.sirblobman.api:folia-helper:1.0.2-SNAPSHOT") // Folia Helper
 }

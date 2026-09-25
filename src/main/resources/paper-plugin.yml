@@ -5,7 +5,7 @@ website: "https://www.spigotmc.org/resources/31822/"
 
 main: "com.github.sirblobman.freeze.FreezePlugin"
 version: "${version}"
-api-version: "26.1.2"
+api-version: "26.2"
 folia-supported: true
 
 authors:
